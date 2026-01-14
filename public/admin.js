@@ -11,7 +11,7 @@ submit.addEventListener("click", function (e) {
 function uploadImage(file) {
   const formData = new FormData();
   formData.append("file", file);
-  formData.append("upload_preset", "my_upload_preset"); // your preset
+  formData.append("upload_preset", "my_upload_preset");
   formData.append("folder", "uploads");
 
   return fetch("https://api.cloudinary.com/v1_1/dbompxovn/image/upload", {
@@ -19,7 +19,6 @@ function uploadImage(file) {
     body: formData
   }).then(res => res.json());
 }
-
 
 function Myfunction() {
   if (!name1.value) {
@@ -40,15 +39,13 @@ function Myfunction() {
   const imageFile1 = file1.files[0];
   const imageFile2 = file1.files[1];
 
-  Promise.all([
-    uploadImage(imageFile1),
-    uploadImage(imageFile2)
-  ])
+  Promise.all([uploadImage(imageFile1), uploadImage(imageFile2)])
     .then(([data1, data2]) => {
       const imageUrl1 = data1.secure_url;
       const imageUrl2 = data2.secure_url;
 
-      return fetch("https://guess-who-amw8.onrender.com/details", {
+      // ✅ NEW Render URL
+      return fetch("https://guess-game-vxiv.onrender.com/details", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -61,14 +58,11 @@ function Myfunction() {
     })
     .then(res => res.json())
     .then(() => {
-      alert("Person added successfully!");
+      alert("✅ Person added successfully!");
 
-      // clear form
       name1.value = "";
       gender.value = "";
       file1.value = "";
     })
     .catch(err => console.error("Error:", err));
-
 }
-
