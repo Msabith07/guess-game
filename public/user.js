@@ -1,18 +1,17 @@
-
 document.addEventListener("DOMContentLoaded", fetchDetails);
 
 function fetchDetails() {
   fetch("/details")
-    .then(response => response.json())
-    .then(data => displayDetails(data))
-    .catch(error => console.error("Error fetching data:", error));
+    .then((response) => response.json())
+    .then((data) => displayDetails(data))
+    .catch((error) => console.error("Error fetching data:", error));
 }
 
 function displayDetails(details) {
   const mainDiv = document.getElementById("main");
   mainDiv.innerHTML = "";
 
-  details.forEach(item => {
+  details.forEach((item) => {
     const card = document.createElement("div");
     card.style.border = "1px solid #ccc";
     card.style.padding = "10px";
@@ -20,15 +19,24 @@ function displayDetails(details) {
     card.style.textAlign = "center";
 
     const name = document.createElement("h3");
-    name.textContent = item.name;
+    name.textContent = item.answer; // ✅ changed
 
     const img = document.createElement("img");
-    img.src = item.image;
+    img.src = item.image1; // ✅ changed
     img.style.width = "150px";
     img.style.height = "150px";
     img.style.objectFit = "cover";
 
+    // ✅ Optional: show 2nd image also
+    const img2 = document.createElement("img");
+    img2.src = item.image2;
+    img2.style.width = "150px";
+    img2.style.height = "150px";
+    img2.style.objectFit = "cover";
+    img2.style.marginLeft = "10px";
+
     card.appendChild(img);
+    card.appendChild(img2);
     card.appendChild(name);
 
     mainDiv.appendChild(card);
