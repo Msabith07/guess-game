@@ -158,7 +158,7 @@ io.on("connection", (socket) => {
     }
 
     // ✅ send result back to this user (for UI correct/wrong)
-    io.emit("answerResult", {
+    socket.emit("answerResult", {
       chosenAnswer: answer,
       correctAnswer: correctAnswer,
     });
