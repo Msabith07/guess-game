@@ -32,7 +32,7 @@ socket.on("newQuestion", (data) => {
 
   if (!question.options || question.options.length === 0) return;
 
-  // ✅ Shuffle options (same as your logic)
+  // ✅ Shuffle options
   const shuffledOptions = [...question.options];
   for (let i = shuffledOptions.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
@@ -42,6 +42,7 @@ socket.on("newQuestion", (data) => {
     ];
   }
 
+  // ✅ Create buttons
   shuffledOptions.forEach((opt) => {
     const btn = document.createElement("button");
     btn.innerText = opt;
@@ -50,14 +51,14 @@ socket.on("newQuestion", (data) => {
       if (locked) return;
       locked = true;
 
-      // show 2nd image after clicking answer
+      // show 2nd image
       photo2.style.display = "block";
 
-      // ✅ send answer to backend (backend checks correct/wrong)
-      socket.emit("submitAnswer", opt);
+      // disable all buttons after one click
+      disableAllButtons();
 
-      // ✅ optional: highlight selected answer only (not correct/wrong)
-      btn.classList.add("selected");
+      // send answer to server
+      socket.emit("submitAnswer", opt);
     };
 
     optionsDiv.appendChild(btn);
@@ -66,11 +67,50 @@ socket.on("newQuestion", (data) => {
   startCountdown(time);
 });
 
+// ✅ Listen for result from server and apply classes
+socket.on("answerResult", (data) => {
+  const { chosenAnswer, correctAnswer } = data;
+
+  const buttons = document.querySelectorAll("#options button");
+
+  buttons.forEach((btn) => {
+    const optionText = btn.innerText;
+
+    // ✅ always highlight correct answer
+    if (optionText === correctAnswer) {
+      btn.classList.add("reveal-correct");
+    }
+
+    // ✅ highlight chosen answer
+    if (optionText === chosenAnswer) {
+      if (chosenAnswer === correctAnswer) {
+        btn.classList.add("correct");
+      } else {
+        btn.classList.add("wrong");
+      }
+    }
+
+    btn.disabled = true;
+  });
+});
+
+function disableAllButtons() {
+  const buttons = document.querySelectorAll("#options button");
+  buttons.forEach((btn) => (btn.disabled = true));
+}
+
 function startCountdown(time) {
   countdown = setInterval(() => {
     time--;
     document.getElementById("timeText").innerText = time;
-    if (time <= 0) clearInterval(countdown);
+
+    if (time <= 0) {
+      clearInterval(countdown);
+
+      // ✅ when time ends, lock input
+      locked = true;
+      disableAllButtons();
+    }
   }, 1000);
 }
 

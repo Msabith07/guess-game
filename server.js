@@ -10,8 +10,8 @@ const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
     origin: "*",
-    methods: ["GET", "POST", "DELETE"]
-  }
+    methods: ["GET", "POST", "DELETE"],
+  },
 });
 
 let usedPersonIds = new Set();
@@ -31,7 +31,7 @@ function shuffle(array) {
 }
 
 function pickCorrectPerson(people) {
-  const available = people.filter(p => !usedPersonIds.has(p.id));
+  const available = people.filter((p) => !usedPersonIds.has(p.id));
 
   if (available.length === 0) {
     usedPersonIds.clear();
@@ -43,19 +43,16 @@ function pickCorrectPerson(people) {
 
 function generateOptions(correctPerson, people) {
   let wrongOptions = people.filter(
-    p => p.gender === correctPerson.gender && p.id !== correctPerson.id
+    (p) => p.gender === correctPerson.gender && p.id !== correctPerson.id
   );
 
   if (wrongOptions.length < 3) {
-    wrongOptions = people.filter(p => p.id !== correctPerson.id);
+    wrongOptions = people.filter((p) => p.id !== correctPerson.id);
   }
 
   wrongOptions = shuffle(wrongOptions).slice(0, 3);
 
-  return shuffle([
-    correctPerson.answer,
-    ...wrongOptions.map(p => p.answer)
-  ]);
+  return shuffle([correctPerson.answer, ...wrongOptions.map((p) => p.answer)]);
 }
 
 // ✅ GET all details from Firestore
@@ -63,9 +60,9 @@ app.get("/details", async (req, res) => {
   try {
     const snapshot = await db.collection(DETAILS_COLLECTION).get();
 
-    const details = snapshot.docs.map(doc => ({
+    const details = snapshot.docs.map((doc) => ({
       id: doc.id, // 🔥 Firestore ID
-      ...doc.data()
+      ...doc.data(),
     }));
 
     res.json(details);
@@ -90,14 +87,14 @@ app.post("/details", async (req, res) => {
       image1,
       image2,
       gender,
-      createdAt: new Date()
+      createdAt: new Date(),
     };
 
     const docRef = await db.collection(DETAILS_COLLECTION).add(newEntry);
 
     res.status(201).json({
       message: "Data saved successfully",
-      data: { id: docRef.id, ...newEntry }
+      data: { id: docRef.id, ...newEntry },
     });
   } catch (err) {
     res.status(500).json({ message: err.message });
@@ -120,7 +117,7 @@ app.delete("/details/:id", async (req, res) => {
 
     res.json({
       message: "Item deleted successfully",
-      deleted: { id, ...docSnap.data() }
+      deleted: { id, ...docSnap.data() },
     });
   } catch (err) {
     res.status(500).json({ message: err.message });
@@ -134,13 +131,13 @@ let timer = null;
 let users = {};
 let finalResults = null;
 
-io.on("connection", socket => {
+io.on("connection", (socket) => {
   console.log("Connected:", socket.id);
 
-  socket.on("registerUser", username => {
+  socket.on("registerUser", (username) => {
     users[socket.id] = {
       username,
-      score: 0
+      score: 0,
     };
     console.log("User registered:", username);
   });
@@ -152,10 +149,19 @@ io.on("connection", socket => {
     sendQuestion();
   });
 
-  socket.on("submitAnswer", answer => {
-    if (users[socket.id] && answer === currentCorrectAnswer) {
+  socket.on("submitAnswer", (answer) => {
+    const correctAnswer = currentCorrectAnswer;
+
+    // ✅ update score
+    if (users[socket.id] && answer === correctAnswer) {
       users[socket.id].score += 1;
     }
+
+    // ✅ send result back to this user (for UI correct/wrong)
+    io.emit("answerResult", {
+      chosenAnswer: answer,
+      correctAnswer: correctAnswer,
+    });
   });
 
   socket.on("getResults", () => {
@@ -175,9 +181,9 @@ async function sendQuestion() {
   try {
     const snapshot = await db.collection(DETAILS_COLLECTION).get();
 
-    const people = snapshot.docs.map(doc => ({
+    const people = snapshot.docs.map((doc) => ({
       id: doc.id,
-      ...doc.data()
+      ...doc.data(),
     }));
 
     if (people.length < 4) {
@@ -203,9 +209,9 @@ async function sendQuestion() {
         image1: correctPerson.image1,
         image2: correctPerson.image2,
         options,
-        answer: correctPerson.answer
+        answer: correctPerson.answer,
       },
-      time: 15
+      time: 15,
     });
 
     clearTimeout(timer);
@@ -218,7 +224,6 @@ async function sendQuestion() {
 app.get("/ping", (req, res) => {
   res.send("pong");
 });
-
 
 server.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
